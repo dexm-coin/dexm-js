@@ -1,8 +1,9 @@
 import { crc32 } from "crc";
 import { enc, RIPEMD160 } from "crypto-js";
+import {  } from "elliptic";
 
 export default class Wallet {
-  private key: CryptoKeyPair;
+  private key: crypto.CryptoKeyPair;
   private shard: number;
 
   public async getAddress() {
