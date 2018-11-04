@@ -1,9 +1,9 @@
 import { crc32 } from "crc";
-import { enc, RIPEMD160, SHA256} from "crypto-js";
+import { enc, RIPEMD160, SHA256 } from "crypto-js";
 import { ec } from "elliptic";
-import {} from "./protobuf/proto"
+import {} from "./protobuf/proto";
 
-export class Wallet {
+export default class Wallet {
   private shard: number;
   private key: ec.KeyPair;
 
@@ -38,11 +38,10 @@ export class Wallet {
 
   // generate creates a new keypair and thus a wallet
   public async generate() {
-    const context = new ec('p256');
+    const context = new ec("p256");
 
     this.key = context.genKeyPair();
   }
-
 }
 
 function getHexFixedLen(n: number, len: number): string {
