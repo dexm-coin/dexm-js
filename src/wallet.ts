@@ -1,20 +1,19 @@
 import { crc32 } from "crc";
-import { enc, RIPEMD160 } from "crypto-js";
-import {  } from "elliptic";
+import { enc, RIPEMD160, SHA256} from "crypto-js";
+import { ec } from "elliptic";
+import {} from "./protobuf/proto"
 
-export default class Wallet {
-  private key: crypto.CryptoKeyPair;
+export class Wallet {
   private shard: number;
+  private key: ec.KeyPair;
 
+  // Returns the address of the wallet in the format Dexm{Checksum
   public async getAddress() {
     const shardHex = getHexFixedLen(this.shard, 2);
     const pubKey = await this.getPubKey();
-    const firstHash = await crypto.subtle.digest("SHA-256", pubKey);
+    const firstHash = SHA256(pubKey).toString(enc.Hex);
 
-    // CryptoJS doesn't like arraybuffers, so we convert it to hex and then
-    // convert it to a WordList
-    const hexFirst = hexdump(firstHash);
-    const coreHash = RIPEMD160(hexFirst, { format: enc.Hex });
+    const coreHash = RIPEMD160(firstHash);
     const core = coreHash.toString(enc.Hex);
 
     const checkSum = crc32(core);
@@ -25,7 +24,7 @@ export default class Wallet {
 
   // getPubKey returns a spki encoded pubKey
   public getPubKey() {
-    return crypto.subtle.exportKey("spki", this.key.publicKey);
+    return this.key.getPublic();
   }
 
   // shards are in the range 0-255
@@ -39,17 +38,11 @@ export default class Wallet {
 
   // generate creates a new keypair and thus a wallet
   public async generate() {
-    const key = await crypto.subtle.generateKey(
-      {
-        name: "ECDSA",
-        namedCurve: "P-256"
-      },
-      true, // Make the key extractable
-      ["sign", "verify"]
-    );
+    const context = new ec('p256');
 
-    this.key = key;
+    this.key = context.genKeyPair();
   }
+
 }
 
 function getHexFixedLen(n: number, len: number): string {
@@ -58,9 +51,9 @@ function getHexFixedLen(n: number, len: number): string {
   return padded.slice(-n);
 }
 
-function hexdump(buf: ArrayBuffer): string {
+/*function hexdump(buf: ArrayBuffer): string {
   const buffer = new Uint8Array(buf);
   const hex = Array.from(buffer).map(v => getHexFixedLen(v, 2));
 
   return hex.join("");
-}
+}*/
